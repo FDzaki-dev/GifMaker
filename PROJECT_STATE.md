@@ -11,6 +11,7 @@ Android app konversi video → GIF, 100% on-device (tanpa upload/cloud), UI Jetp
 | Batch | Tanggal | Ringkasan |
 |---|---|---|
 | v1_Batch1 | 2026-08-12 | Bootstrap workflow Prompt-Driven Dev di atas source `GifMaker-main.zip` (import awal dari GitHub). Tambah Crash Logger bawaan, perbaiki CI agar publish GitHub Release, tambah `.gitattributes`, tambah file governance (PROJECT_STATE/CHANGELOG/FILE_MANIFEST/README). |
+| v1_Batch2 | 2026-08-12 | Fix bug CI: `CrashLogger.kt:30` `const val` invalid (referensi field Android SDK non-constant) → diturunkan jadi `val`. Tambah fitur CI: build log & report otomatis di-upload sebagai artifact `log_fail_v<version>_run<run_number>` saat build gagal, agar mudah diunduh (lihat README/CHANGELOG untuk command Termux). |
 
 ## Modul & Arsitektur
 - **UI**: `MainActivity.kt` — single-activity Compose, state via `GifMakerViewModel` (MVI: `GifMakerIntent` → `state: StateFlow`).
@@ -34,7 +35,7 @@ Android app konversi video → GIF, 100% on-device (tanpa upload/cloud), UI Jetp
 | release.keystore | N/A — sengaja tidak ada di repo (by design, lihat CI) |
 | .gitignore | ✅ utuh |
 | .gitattributes | ➕ ditambahkan (sebelumnya tidak ada) |
-| .github/workflows/* | ✏️ diedit (tambah step publish GitHub Release) |
+| .github/workflows/* | ✏️ diedit (v1_Batch1: publish GitHub Release · v1_Batch2: upload artifact log kegagalan `log_fail_v<version>_run<run_number>`, build job jadi 2-phase agar log tetap ke-upload sebelum job ditandai gagal) |
 
 ## Known Gaps / Next Steps (belum dikerjakan)
 - Belum ada unit test.

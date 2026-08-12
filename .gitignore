@@ -10,4 +10,3 @@
 local.properties
 *.keystore
 keystore.properties
-release.keystore

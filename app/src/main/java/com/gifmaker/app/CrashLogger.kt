@@ -27,7 +27,7 @@ object CrashLogger {
 
     private const val APP_FOLDER = "GifMaker"
     private const val MAX_LOGS = 50
-    private const val RELATIVE_DIR = "${Environment.DIRECTORY_DOCUMENTS}/$APP_FOLDER/logs"
+    private val RELATIVE_DIR = "${Environment.DIRECTORY_DOCUMENTS}/$APP_FOLDER/logs"
 
     fun install(context: Context) {
         val appContext = context.applicationContext

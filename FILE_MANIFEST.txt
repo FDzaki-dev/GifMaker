@@ -1,17 +1,17 @@
-FILE_MANIFEST.txt — GifMaker v1_Batch1 (2026-08-12)
-Total: 37 file (di luar .git)
+FILE_MANIFEST.txt — GifMaker v1_Batch2 (2026-08-12)
+Total: 38 file (di luar .git)
 
-.gitattributes                                                [+ baru] normalisasi EOL + binary marks
-.github/workflows/android.yml                                 [~ edit] CI: build signed APK + publish GitHub Release
+.gitattributes                                                [= tetap] normalisasi EOL + binary marks
+.github/workflows/android.yml                                 [~ edit] CI: + upload artifact log_fail_v<version>_run<run_number> saat gagal
 .gitignore                                                     [= tetap] (protected)
-CHANGELOG.md                                                   [+ baru] governance
-PROJECT_STATE.md                                                [+ baru] governance
-README.md                                                       [+ baru] governance
+CHANGELOG.md                                                   [~ edit] governance
+PROJECT_STATE.md                                                [~ edit] governance
+README.md                                                       [~ edit] governance
 app/build.gradle.kts                                           [= tetap] (protected)
 app/proguard-rules.pro                                         [= tetap]
 app/src/main/AndroidManifest.xml                                [= tetap] (protected)
 app/src/main/java/com/gifmaker/app/ColorQuantizer.kt            [= tetap] palet warna GIF
-app/src/main/java/com/gifmaker/app/CrashLogger.kt               [+ baru] crash logger MediaStore, FIFO 50
+app/src/main/java/com/gifmaker/app/CrashLogger.kt               [~ edit] fix bug compile: const val → val (lihat CHANGELOG)
 app/src/main/java/com/gifmaker/app/GifEncoder.kt                [= tetap] penulis GIF89a
 app/src/main/java/com/gifmaker/app/GifEngine.kt                 [= tetap] orkestrasi encoding
 app/src/main/java/com/gifmaker/app/GifMakerApp.kt               [~ edit] (protected) init CrashLogger
@@ -39,5 +39,5 @@ build.gradle.kts                                                [= tetap] (prote
 gradle.properties                                                [= tetap]
 settings.gradle.kts                                              [= tetap] (protected)
 
-Legenda: [+ baru] file baru | [~ edit] edit parsial | [= tetap] tidak berubah dari upload | (protected) = Protected Asset
+Legenda: [+ baru] file baru | [~ edit] edit parsial | [= tetap] tidak berubah | (protected) = Protected Asset
 Dihapus batch ini: tidak ada.

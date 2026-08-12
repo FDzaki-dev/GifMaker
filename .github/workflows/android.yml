@@ -31,25 +31,47 @@ jobs:
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > release.keystore
 
+      - name: Get short SHA
+        id: sha
+        run: echo "short_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Extract version name
+        id: ver
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts || echo "unknown")
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Build signed release APK
+        id: build
+        continue-on-error: true
         env:
           ANDROID_KEYSTORE_PATH: release.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon 2>&1 | tee build.log
 
-      - name: Get short SHA
-        id: sha
-        run: echo "short_sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Upload failure logs
+        if: steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: log_fail_v${{ steps.ver.outputs.version_name }}_run${{ github.run_number }}
+          path: |
+            build.log
+            app/build/reports
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Verify APK exists
+        if: steps.build.outcome == 'success'
         run: test -f app/build/outputs/apk/release/app-release.apk
 
       - name: Rename APK for release
+        if: steps.build.outcome == 'success'
         run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/GifMaker-${{ steps.sha.outputs.short_sha }}.apk
 
       - name: Publish GitHub Release
+        if: steps.build.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ steps.sha.outputs.short_sha }}
@@ -60,3 +82,7 @@ jobs:
       - name: Clean up keystore
         if: always()
         run: rm -f release.keystore
+
+      - name: Fail job if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
