@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">GifMaker</string>
+    <string name="pick_video">Pilih Video</string>
+    <string name="generate_gif">Buat GIF</string>
+    <string name="generating">Membuat GIF…</string>
+    <string name="save_gif">Simpan GIF</string>
+    <string name="share_gif">Bagikan</string>
+    <string name="error_generic">Gagal membuat GIF. Coba lagi.</string>
+    <string name="no_video_selected">Belum ada video dipilih</string>
+</resources>
