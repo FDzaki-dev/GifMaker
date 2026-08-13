@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v1_Batch5 — 2026-08-14
+### Fixed
+- **Bug layout kritis**: root `Column` di layar utama pakai `Modifier.fillMaxSize().padding(...).verticalScroll(...)`. Kombinasi `fillMaxSize()` + `verticalScroll()` memaksa Column setinggi viewport walau konten lebih pendek dari layar → konten nempel di atas, sisanya jadi gap kosong raksasa (dilaporkan user via screenshot). Fix: ganti `fillMaxSize()` → `fillMaxWidth()`, tinggi Column jadi ikut konten, scroll baru aktif kalau konten benar-benar melebihi layar.
+
+### Changed — Split ke 2 layar (Home → Editor)
+Sebelumnya 1 layar dengan tab switcher; sekarang navigasi asli 2 layar terpisah (permintaan user "dibuat per layer" setelah lihat app referensi ternyata multi-screen):
+- `app/build.gradle.kts` — tambah dependency `androidx.navigation:navigation-compose:2.7.7`.
+- `GifMakerNavGraph.kt` **(baru)** — NavGraph dengan 2 route (`home`, `editor`); video picker dipicu sekali secara imperatif (bukan `LaunchedEffect` reactive) supaya tombol back di Editor tidak looping balik.
+- `HomeScreen.kt` **(baru)** — entry point: pilih video baru, atau "Lanjut ke Editor" kalau video sudah pernah dipilih sebelumnya (resume).
+- `EditorScreen.kt` **(baru)** — preview + toolbar Trim/FPS/Lebar + top bar (back arrow, check-icon generate). Berisi ulang komponen dari `MainActivity.kt` versi v1_Batch4, dengan fix bug di atas.
+- `MainActivity.kt` — disederhanakan drastis: cuma `installSplashScreen()` + theme + `GifMakerNavGraph()`. Token warna brand (BackgroundDark/SurfaceDark/dst) dipindah ke top-level `val` (bukan `private`) supaya bisa dipakai lintas file/layar.
+
 ## v1_Batch4 — 2026-08-13
 ### Changed
 - `MainActivity.kt`:

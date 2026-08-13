@@ -1,5 +1,5 @@
-FILE_MANIFEST.txt — GifMaker v1_Batch4 (2026-08-13)
-Total: 38 file (di luar .git)
+FILE_MANIFEST.txt — GifMaker v1_Batch5 (2026-08-14)
+Total: 41 file (di luar .git)
 
 .gitattributes                                                [= tetap] normalisasi EOL + binary marks
 .github/workflows/android.yml                                 [= tetap] CI: upload artifact log_fail_v<version>_run<run_number> saat gagal
@@ -7,7 +7,7 @@ Total: 38 file (di luar .git)
 CHANGELOG.md                                                   [~ edit] governance
 PROJECT_STATE.md                                                [~ edit] governance
 README.md                                                       [= tetap] governance
-app/build.gradle.kts                                           [= tetap] (protected)
+app/build.gradle.kts                                           [~ edit] (protected) + dependency navigation-compose
 app/proguard-rules.pro                                         [= tetap]
 app/src/main/AndroidManifest.xml                                [= tetap] (protected)
 app/src/main/java/com/gifmaker/app/ColorQuantizer.kt            [= tetap] palet warna GIF
@@ -16,7 +16,10 @@ app/src/main/java/com/gifmaker/app/GifEncoder.kt                [= tetap] penuli
 app/src/main/java/com/gifmaker/app/GifEngine.kt                 [= tetap] orkestrasi encoding
 app/src/main/java/com/gifmaker/app/GifMakerApp.kt               [~ edit] (protected) init CrashLogger
 app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [= tetap] state thumbnail/duration (dari v1_Batch3)
-app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) top bar check-icon + FPS chip + bottom toolbar (lihat CHANGELOG)
+app/src/main/java/com/gifmaker/app/EditorScreen.kt             [+ baru] layar 2: preview+trim/fps/lebar+toolbar (pindahan dari MainActivity v1_Batch4, fix bug scroll)
+app/src/main/java/com/gifmaker/app/GifMakerNavGraph.kt          [+ baru] (protected, NavGraph) 2 route: home, editor
+app/src/main/java/com/gifmaker/app/HomeScreen.kt                [+ baru] layar 1: entry/resume
+app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) disederhanakan jadi theme+NavHost host (lihat CHANGELOG)
 app/src/main/res/drawable/ic_launcher_background.xml            [= tetap]
 app/src/main/res/drawable/ic_launcher_foreground.xml            [= tetap]
 app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml               [= tetap]
