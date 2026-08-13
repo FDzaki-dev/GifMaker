@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v1_Batch4 — 2026-08-13
+### Changed
+- `MainActivity.kt`:
+  - Tombol generate dipindah dari bottom-pinned button → ikon check (✓) di top app bar kanan atas, meniru pola save-icon app referensi (terlihat di screenshot trim & editor screen mereka).
+  - Panel FPS diganti dari `Slider` kontinu → baris `FilterChip` horizontal diskrit (24/20/15/12/10/8 FPS), meniru chip-row FPS di trim screen referensi (60/40/30/25/20/15 FPS).
+  - Bottom bar diganti dari 1 tombol CTA → toolbar ikon+label 3-tab (Trim/FPS/Lebar) yang men-switch panel pengaturan aktif di atasnya, meniru pola toolbar Trim/Kelola/Kecepatan/Teks di editor screen referensi (2 tab terakhir tidak diikutkan karena fitur belum ada di engine).
+
+### Notes
+- Berdasarkan 6 screenshot asli yang dikirim user: app referensi ternyata 5 layar terpisah (Home/Galeri/Trim/Editor/Export), bukan 1 layar. User memutuskan tetap pertahankan struktur 1 layar GifMaker, hanya elemen visual yang diadaptasi.
+- Semua ikon tetap Material Icons bawaan (bukan hasil ekstrak dari app referensi); warna tetap brand ungu GifMaker, bukan orange/teal milik referensi.
+
 ## v1_Batch3 — 2026-08-12
 ### Changed
 - `MainActivity.kt` — restyle penuh layar utama: `Scaffold` dengan top app bar + bottom-pinned CTA "Buat GIF", kartu preview video (thumbnail asli via `MediaMetadataRetriever`), kartu trim range slider, kartu setting FPS/lebar dengan ikon. Terinspirasi struktur umum app "GIF Maker, Video to GIF Editor" (`com.bk.videotogif`) dari deskripsi fitur publik Play Store — bukan pixel-exact clone, semua ikon/aset original.

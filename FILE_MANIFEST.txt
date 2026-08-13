@@ -1,4 +1,4 @@
-FILE_MANIFEST.txt — GifMaker v1_Batch3 (2026-08-12)
+FILE_MANIFEST.txt — GifMaker v1_Batch4 (2026-08-13)
 Total: 38 file (di luar .git)
 
 .gitattributes                                                [= tetap] normalisasi EOL + binary marks
@@ -15,8 +15,8 @@ app/src/main/java/com/gifmaker/app/CrashLogger.kt               [= tetap] crash 
 app/src/main/java/com/gifmaker/app/GifEncoder.kt                [= tetap] penulis GIF89a
 app/src/main/java/com/gifmaker/app/GifEngine.kt                 [= tetap] orkestrasi encoding
 app/src/main/java/com/gifmaker/app/GifMakerApp.kt               [~ edit] (protected) init CrashLogger
-app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [~ edit] + state thumbnail/duration, load async (lihat CHANGELOG)
-app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) restyle penuh — top bar/preview/trim/CTA (lihat CHANGELOG)
+app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [= tetap] state thumbnail/duration (dari v1_Batch3)
+app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) top bar check-icon + FPS chip + bottom toolbar (lihat CHANGELOG)
 app/src/main/res/drawable/ic_launcher_background.xml            [= tetap]
 app/src/main/res/drawable/ic_launcher_foreground.xml            [= tetap]
 app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml               [= tetap]
