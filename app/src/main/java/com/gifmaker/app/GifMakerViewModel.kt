@@ -1,18 +1,25 @@
 package com.gifmaker.app
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /** State immutable — satu-satunya sumber kebenaran UI, tidak pernah dimutasi, selalu diganti utuh via copy(). */
 data class GifMakerState(
     val videoUri: Uri? = null,
+    val videoDurationMs: Long = 0L,
+    val videoThumbnail: Bitmap? = null,
+    val isLoadingVideoInfo: Boolean = false,
     val fps: Int = 12,
     val outputWidth: Int = 480,
     val startMs: Long = 0L,
@@ -44,11 +51,16 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
     fun onIntent(intent: GifMakerIntent) {
         when (intent) {
             is GifMakerIntent.PickVideo -> {
+                recycleThumbnail()
                 _state.value = _state.value.copy(
                     videoUri = intent.uri,
+                    videoThumbnail = null,
+                    videoDurationMs = 0L,
+                    isLoadingVideoInfo = true,
                     resultFile = null,
                     errorMessage = null
                 )
+                loadVideoInfo(intent.uri)
             }
             is GifMakerIntent.SetFps -> {
                 _state.value = _state.value.copy(fps = intent.fps.coerceIn(1, 30))
@@ -70,6 +82,49 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
                 _state.value = _state.value.copy(resultFile = null, resultSizeBytes = 0L)
             }
         }
+    }
+
+    /** Ambil durasi + thumbnail frame pertama secara async agar UI (preview + trim range) bisa dipakai. */
+    private fun loadVideoInfo(uri: Uri) {
+        viewModelScope.launch {
+            val (duration, thumbnail) = withContext(Dispatchers.IO) {
+                val retriever = MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(getApplication(), uri)
+                    val durationMs = retriever
+                        .extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                        ?.toLongOrNull() ?: 0L
+                    val thumb = try {
+                        retriever.getFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST)
+                    } catch (e: Exception) {
+                        null
+                    }
+                    durationMs to thumb
+                } catch (e: Exception) {
+                    0L to null
+                } finally {
+                    runCatching { retriever.release() }
+                }
+            }
+            val defaultEnd = if (duration > 0L) minOf(3000L, duration) else 3000L
+            _state.value = _state.value.copy(
+                videoDurationMs = duration,
+                videoThumbnail = thumbnail,
+                isLoadingVideoInfo = false,
+                startMs = 0L,
+                endMs = defaultEnd
+            )
+        }
+    }
+
+    private fun recycleThumbnail() {
+        val bmp = _state.value.videoThumbnail
+        if (bmp != null && !bmp.isRecycled) bmp.recycle()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        recycleThumbnail()
     }
 
     private fun generateGif() {

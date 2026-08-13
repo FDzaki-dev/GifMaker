@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1_Batch3 — 2026-08-12
+### Changed
+- `MainActivity.kt` — restyle penuh layar utama: `Scaffold` dengan top app bar + bottom-pinned CTA "Buat GIF", kartu preview video (thumbnail asli via `MediaMetadataRetriever`), kartu trim range slider, kartu setting FPS/lebar dengan ikon. Terinspirasi struktur umum app "GIF Maker, Video to GIF Editor" (`com.bk.videotogif`) dari deskripsi fitur publik Play Store — bukan pixel-exact clone, semua ikon/aset original.
+- `GifMakerViewModel.kt` — tambah state `videoDurationMs`, `videoThumbnail`, `isLoadingVideoInfo`; `PickVideo` sekarang otomatis extract durasi+thumbnail (async, fail-safe) supaya trim slider & preview bisa jalan. Tambah `onCleared()` untuk recycle bitmap (cegah memory leak).
+
+### Notes
+- Fitur trim sebenarnya sudah ada di `GifEngine`/`GifRequest` sejak awal tapi belum pernah di-expose ke UI — batch ini baru menyambungkannya.
+
 ## v1_Batch2 — 2026-08-12
 ### Fixed
 - `CrashLogger.kt` — `RELATIVE_DIR` diubah dari `const val` ke `val`. Root cause CI gagal (`compileReleaseKotlin FAILED`): `const val` di Kotlin wajib initializer compile-time constant murni, sedangkan `Environment.DIRECTORY_DOCUMENTS` adalah field Android SDK sehingga tidak valid dipakai dalam `const val`.

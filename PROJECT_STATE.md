@@ -12,6 +12,7 @@ Android app konversi video → GIF, 100% on-device (tanpa upload/cloud), UI Jetp
 |---|---|---|
 | v1_Batch1 | 2026-08-12 | Bootstrap workflow Prompt-Driven Dev di atas source `GifMaker-main.zip` (import awal dari GitHub). Tambah Crash Logger bawaan, perbaiki CI agar publish GitHub Release, tambah `.gitattributes`, tambah file governance (PROJECT_STATE/CHANGELOG/FILE_MANIFEST/README). |
 | v1_Batch2 | 2026-08-12 | Fix bug CI: `CrashLogger.kt:30` `const val` invalid (referensi field Android SDK non-constant) → diturunkan jadi `val`. Tambah fitur CI: build log & report otomatis di-upload sebagai artifact `log_fail_v<version>_run<run_number>` saat build gagal, agar mudah diunduh (lihat README/CHANGELOG untuk command Termux). |
+| v1_Batch3 | 2026-08-12 | Restyle layar utama (satu-satunya layar) terinspirasi struktur umum app "GIF Maker, Video to GIF Editor" (Play Store `com.bk.videotogif`): top app bar, preview thumbnail video, trim range slider (fitur trim di `GifEngine` sudah ada sejak awal tapi belum ke-expose di UI — sekarang dipakai), bottom-pinned CTA "Buat GIF". Tidak menyalin aset/icon asli app referensi — semua ikon pakai Material Icons bawaan, warna & struktur hasil adaptasi dari deskripsi fitur publik. |
 
 ## Modul & Arsitektur
 - **UI**: `MainActivity.kt` — single-activity Compose, state via `GifMakerViewModel` (MVI: `GifMakerIntent` → `state: StateFlow`).
@@ -28,7 +29,7 @@ Android app konversi video → GIF, 100% on-device (tanpa upload/cloud), UI Jetp
 | AndroidManifest.xml | ✅ utuh |
 | build.gradle.kts (root & app) | ✅ utuh |
 | settings.gradle.kts | ✅ utuh |
-| MainActivity.kt | ✅ utuh |
+| MainActivity.kt | ✏️ diedit parsial (v1_Batch3: restyle layar — top bar, preview thumbnail, trim slider, bottom CTA) |
 | GifMakerApp.kt (Application) | ✏️ diedit parsial (tambah `CrashLogger.install()`) |
 | NavGraph | N/A — tidak dipakai di proyek ini |
 | DB Schema/DAO | N/A — tidak dipakai di proyek ini |
@@ -41,7 +42,8 @@ Android app konversi video → GIF, 100% on-device (tanpa upload/cloud), UI Jetp
 - Belum ada unit test.
 - Belum ada app icon custom (masih default AGP adaptive icon template).
 - Belum ada penanganan izin runtime untuk share/save hasil GIF ke luar (saat ini hanya simpan lokal, path ditampilkan di UI).
-- `keystore.properties` & secrets GitHub belum diisi oleh user — wajib dijalankan manual sebelum CI bisa build signed APK (lihat skrip Termux di chat).
+- `keystore.properties` & secrets GitHub sudah di-generate (lihat CHANGELOG v1_Batch2 sebelumnya / respons keystore) — pastikan sudah dijalankan di Termux.
+- Layout referensi `com.bk.videotogif` (v1_Batch3) diadaptasi dari deskripsi fitur publik Play Store, BUKAN pixel-exact (tidak ada akses ke screenshot resolusi tinggi/asset asli mereka). Fitur app referensi yang belum ada di GifMaker: Photo→GIF slideshow, stiker, teks overlay, filter, model iklan/premium.
 
 ## Keputusan Teknis (log)
 - Crash logger pakai MediaStore Documents (bukan Downloads) agar rapi dalam 1 folder `GifMaker/logs`.
