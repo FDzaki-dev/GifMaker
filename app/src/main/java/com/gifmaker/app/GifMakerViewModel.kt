@@ -4,6 +4,7 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ data class GifMakerState(
     val videoUri: Uri? = null,
     val videoDurationMs: Long = 0L,
     val videoThumbnail: Bitmap? = null,
+    val filmstripFrames: List<Bitmap> = emptyList(),
     val isLoadingVideoInfo: Boolean = false,
     val fps: Int = 12,
     val outputWidth: Int = 480,
@@ -51,10 +53,11 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
     fun onIntent(intent: GifMakerIntent) {
         when (intent) {
             is GifMakerIntent.PickVideo -> {
-                recycleThumbnail()
+                recycleBitmaps()
                 _state.value = _state.value.copy(
                     videoUri = intent.uri,
                     videoThumbnail = null,
+                    filmstripFrames = emptyList(),
                     videoDurationMs = 0L,
                     isLoadingVideoInfo = true,
                     resultFile = null,
@@ -84,10 +87,10 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** Ambil durasi + thumbnail frame pertama secara async agar UI (preview + trim range) bisa dipakai. */
+    /** Ambil durasi + thumbnail frame pertama + frame filmstrip (untuk UI trim) secara async, fail-safe. */
     private fun loadVideoInfo(uri: Uri) {
         viewModelScope.launch {
-            val (duration, thumbnail) = withContext(Dispatchers.IO) {
+            val (duration, thumbnail, frames) = withContext(Dispatchers.IO) {
                 val retriever = MediaMetadataRetriever()
                 try {
                     retriever.setDataSource(getApplication(), uri)
@@ -99,9 +102,14 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
                     } catch (e: Exception) {
                         null
                     }
-                    durationMs to thumb
+                    val filmstrip = try {
+                        extractFilmstripFrames(retriever, durationMs)
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+                    Triple(durationMs, thumb, filmstrip)
                 } catch (e: Exception) {
-                    0L to null
+                    Triple(0L, null, emptyList())
                 } finally {
                     runCatching { retriever.release() }
                 }
@@ -110,6 +118,7 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
             _state.value = _state.value.copy(
                 videoDurationMs = duration,
                 videoThumbnail = thumbnail,
+                filmstripFrames = frames,
                 isLoadingVideoInfo = false,
                 startMs = 0L,
                 endMs = defaultEnd
@@ -117,14 +126,52 @@ class GifMakerViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    private fun recycleThumbnail() {
-        val bmp = _state.value.videoThumbnail
-        if (bmp != null && !bmp.isRecycled) bmp.recycle()
+    /** Ekstrak [count] frame terdistribusi merata sepanjang durasi video, untuk strip thumbnail trim UI. */
+    private fun extractFilmstripFrames(
+        retriever: MediaMetadataRetriever,
+        durationMs: Long,
+        count: Int = 10
+    ): List<Bitmap> {
+        if (durationMs <= 0L) return emptyList()
+        val stepUs = (durationMs * 1000L) / count
+        val targetPx = 120
+        val frames = mutableListOf<Bitmap>()
+        for (i in 0 until count) {
+            val timeUs = (stepUs * i).coerceIn(0L, (durationMs * 1000L) - 1000L)
+            val frame = try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    retriever.getScaledFrameAtTime(
+                        timeUs,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                        targetPx,
+                        targetPx
+                    )
+                } else {
+                    val full = retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                    full?.let { src ->
+                        val h = (targetPx * src.height / src.width).coerceAtLeast(1)
+                        val scaled = Bitmap.createScaledBitmap(src, targetPx, h, true)
+                        if (scaled != src) src.recycle()
+                        scaled
+                    }
+                }
+            } catch (e: Exception) {
+                null
+            }
+            if (frame != null) frames.add(frame)
+        }
+        return frames
+    }
+
+    private fun recycleBitmaps() {
+        val state = _state.value
+        state.videoThumbnail?.let { if (!it.isRecycled) it.recycle() }
+        state.filmstripFrames.forEach { if (!it.isRecycled) it.recycle() }
     }
 
     override fun onCleared() {
         super.onCleared()
-        recycleThumbnail()
+        recycleBitmaps()
     }
 
     private fun generateGif() {

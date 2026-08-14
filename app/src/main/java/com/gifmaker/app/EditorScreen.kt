@@ -2,7 +2,10 @@ package com.gifmaker.app
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,15 +23,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
 private val FpsOptions = listOf(24, 20, 15, 12, 10, 8)
@@ -116,6 +124,7 @@ fun EditorScreen(
                             durationMs = state.videoDurationMs,
                             startMs = state.startMs,
                             endMs = state.endMs,
+                            frames = state.filmstripFrames,
                             onRangeChange = { start, end -> onIntent(GifMakerIntent.SetTrimRange(start, end)) }
                         )
                         SettingsTab.FPS -> FpsChipPanel(
@@ -202,6 +211,7 @@ private fun TrimPanel(
     durationMs: Long,
     startMs: Long,
     endMs: Long,
+    frames: List<Bitmap>,
     onRangeChange: (Long, Long) -> Unit
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -218,15 +228,145 @@ private fun TrimPanel(
             }
         }
         if (hasVideo && durationMs > 0L) {
-            RangeSlider(
-                value = startMs.toFloat()..endMs.toFloat(),
-                onValueChange = { range -> onRangeChange(range.start.toLong(), range.endInclusive.toLong()) },
-                valueRange = 0f..durationMs.toFloat(),
-                colors = SliderDefaults.colors(thumbColor = BrandPrimary, activeTrackColor = BrandPrimary)
+            FilmstripTrimmer(
+                frames = frames,
+                durationMs = durationMs,
+                startMs = startMs,
+                endMs = endMs,
+                onRangeChange = onRangeChange
             )
         } else {
             Text("Pilih video dulu untuk mengatur potongan.", color = OnSurfaceDark.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
         }
+    }
+}
+
+/**
+ * Filmstrip trim UI: strip thumbnail frame video sebagai pengganti seekbar polos,
+ * dengan 2 handle simetris (kiri = start, kanan = end) yang bisa di-drag independen.
+ */
+@Composable
+private fun FilmstripTrimmer(
+    frames: List<Bitmap>,
+    durationMs: Long,
+    startMs: Long,
+    endMs: Long,
+    onRangeChange: (Long, Long) -> Unit
+) {
+    val density = LocalDensity.current
+    val minGapMs = 200L
+    val handleWidth = 16.dp
+
+    // Selalu baca nilai terbaru di dalam gesture drag tanpa perlu relaunch pointerInput.
+    val latestStart by rememberUpdatedState(startMs)
+    val latestEnd by rememberUpdatedState(endMs)
+    val latestOnRangeChange by rememberUpdatedState(onRangeChange)
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .clip(RoundedCornerShape(14.dp))
+    ) {
+        val widthPx = with(density) { maxWidth.toPx() }
+        val handleWidthPx = with(density) { handleWidth.toPx() }
+
+        // Strip thumbnail frame video, tersusun horizontal mengisi lebar penuh.
+        Row(modifier = Modifier.fillMaxSize().background(SurfaceRaised)) {
+            frames.forEach { frame ->
+                Image(
+                    bitmap = frame.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.weight(1f).fillMaxHeight()
+                )
+            }
+        }
+
+        val startFrac = (startMs.toFloat() / durationMs).coerceIn(0f, 1f)
+        val endFrac = (endMs.toFloat() / durationMs).coerceIn(0f, 1f)
+        val startX = startFrac * widthPx
+        val endX = endFrac * widthPx
+
+        // Overlay gelap di luar rentang terpilih (kiri & kanan).
+        if (startX > 0f) {
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(0, 0) }
+                    .width(with(density) { startX.toDp() })
+                    .fillMaxHeight()
+                    .background(Color.Black.copy(alpha = 0.6f))
+            )
+        }
+        if (endX < widthPx) {
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(endX.toInt(), 0) }
+                    .width(with(density) { (widthPx - endX).toDp() })
+                    .fillMaxHeight()
+                    .background(Color.Black.copy(alpha = 0.6f))
+            )
+        }
+
+        // Bingkai rentang terpilih.
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(startX.toInt(), 0) }
+                .width(with(density) { (endX - startX).coerceAtLeast(0f).toDp() })
+                .fillMaxHeight()
+                .border(2.dp, BrandPrimary, RectangleShape)
+        )
+
+        // Handle kiri (start) — simetris dengan handle kanan.
+        TrimHandle(
+            modifier = Modifier
+                .offset { IntOffset((startX - handleWidthPx / 2).toInt(), 0) }
+                .width(handleWidth)
+                .fillMaxHeight()
+                .pointerInput(durationMs) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        val deltaMs = (dragAmount.x / widthPx * durationMs).toLong()
+                        val newStart = (latestStart + deltaMs).coerceIn(0L, latestEnd - minGapMs)
+                        latestOnRangeChange(newStart, latestEnd)
+                    }
+                }
+        )
+
+        // Handle kanan (end) — simetris dengan handle kiri.
+        TrimHandle(
+            modifier = Modifier
+                .offset { IntOffset((endX - handleWidthPx / 2).toInt(), 0) }
+                .width(handleWidth)
+                .fillMaxHeight()
+                .pointerInput(durationMs) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        val deltaMs = (dragAmount.x / widthPx * durationMs).toLong()
+                        val newEnd = (latestEnd + deltaMs).coerceIn(latestStart + minGapMs, durationMs)
+                        latestOnRangeChange(latestStart, newEnd)
+                    }
+                }
+        )
+    }
+}
+
+/** Grip handle trim: bentuk & ukuran identik dipakai untuk sisi kiri maupun kanan (simetris). */
+@Composable
+private fun TrimHandle(modifier: Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(6.dp))
+            .background(BrandPrimary),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(22.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color.White.copy(alpha = 0.85f))
+        )
     }
 }
 

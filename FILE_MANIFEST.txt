@@ -1,4 +1,4 @@
-FILE_MANIFEST.txt — GifMaker v1_Batch5 (2026-08-14)
+FILE_MANIFEST.txt — GifMaker v1_Batch6 (2026-08-14)
 Total: 41 file (di luar .git)
 
 .gitattributes                                                [= tetap] normalisasi EOL + binary marks
@@ -15,8 +15,8 @@ app/src/main/java/com/gifmaker/app/CrashLogger.kt               [= tetap] crash 
 app/src/main/java/com/gifmaker/app/GifEncoder.kt                [= tetap] penulis GIF89a
 app/src/main/java/com/gifmaker/app/GifEngine.kt                 [= tetap] orkestrasi encoding
 app/src/main/java/com/gifmaker/app/GifMakerApp.kt               [~ edit] (protected) init CrashLogger
-app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [= tetap] state thumbnail/duration (dari v1_Batch3)
-app/src/main/java/com/gifmaker/app/EditorScreen.kt             [+ baru] layar 2: preview+trim/fps/lebar+toolbar (pindahan dari MainActivity v1_Batch4, fix bug scroll)
+app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [~ edit] v1_Batch6: state+ekstraksi filmstripFrames
+app/src/main/java/com/gifmaker/app/EditorScreen.kt             [~ edit] v1_Batch6: TrimPanel pakai FilmstripTrimmer (filmstrip+2 handle simetris) ganti RangeSlider
 app/src/main/java/com/gifmaker/app/GifMakerNavGraph.kt          [+ baru] (protected, NavGraph) 2 route: home, editor
 app/src/main/java/com/gifmaker/app/HomeScreen.kt                [+ baru] layar 1: entry/resume
 app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) disederhanakan jadi theme+NavHost host (lihat CHANGELOG)
@@ -44,3 +44,4 @@ settings.gradle.kts                                              [= tetap] (prot
 
 Legenda: [+ baru] file baru | [~ edit] edit parsial | [= tetap] tidak berubah | (protected) = Protected Asset
 Dihapus batch ini: tidak ada.
+Catatan v1_Batch6: WidthPanel (Slider 1-handle) sengaja tidak diubah — lihat PROJECT_STATE.md.

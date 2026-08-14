@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## v1_Batch6 — 2026-08-14
+### Changed — Trim panel: seekbar → filmstrip 2-handle
+- `EditorScreen.kt`: `TrimPanel` tidak lagi pakai `RangeSlider` Material3 polos. Komponen baru `FilmstripTrimmer` menampilkan strip 10 thumbnail frame video asli (bukan garis polos), dengan 2 handle grip simetris (kiri=start, kanan=end, bentuk/ukuran identik) yang bisa di-drag independen (`pointerInput` + `detectDragGestures`), overlay gelap di area yang terpotong, dan border ungu di rentang terpilih. Minimum jarak antar-handle 200ms (cegah rentang invalid/nol).
+- `GifMakerViewModel.kt`: tambah state `filmstripFrames: List<Bitmap>` + fungsi `extractFilmstripFrames()` (10 frame terdistribusi merata sepanjang durasi, `getScaledFrameAtTime` di API≥27 / fallback scale manual di API<27, target 120px, fail-safe per-frame). Diekstrak bareng thumbnail+durasi di `loadVideoInfo()` (1x async IO, tidak nambah request terpisah). Recycle bitmap diperluas: `recycleThumbnail()` → `recycleBitmaps()` (recycle thumbnail + semua frame filmstrip), dipanggil saat ganti video & `onCleared()` — cegah memory leak.
+
+### Notes
+- `WidthPanel` (Slider lebar output, cuma 1 handle) sengaja **tidak** diikutkan — filmstrip & 2-handle-simetris adalah konsep trim video berbasis waktu, tidak relevan untuk nilai lebar-piksel tunggal. Tetap `Slider` Material3 standar.
+- Tidak ada Protected Asset yang tersentuh (EditorScreen.kt & GifMakerViewModel.kt bukan protected).
+
 ## v1_Batch5 — 2026-08-14
 ### Fixed
 - **Bug layout kritis**: root `Column` di layar utama pakai `Modifier.fillMaxSize().padding(...).verticalScroll(...)`. Kombinasi `fillMaxSize()` + `verticalScroll()` memaksa Column setinggi viewport walau konten lebih pendek dari layar → konten nempel di atas, sisanya jadi gap kosong raksasa (dilaporkan user via screenshot). Fix: ganti `fillMaxSize()` → `fillMaxWidth()`, tinggi Column jadi ikut konten, scroll baru aktif kalau konten benar-benar melebihi layar.
