@@ -49,7 +49,29 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle assembleRelease --no-daemon 2>&1 | tee build.log
+        run: gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee build.log
+
+      - name: Generate diagnosis summary
+        if: steps.build.outcome == 'failure'
+        run: |
+          {
+            echo "=== GifMaker CI Failure Diagnosis ==="
+            echo "Run: #${{ github.run_number }} | Commit: ${{ steps.sha.outputs.short_sha }} | Version: ${{ steps.ver.outputs.version_name }}"
+            echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo
+            echo "--- Environment ---"
+            java -version 2>&1
+            gradle -version 2>&1
+            echo
+            echo "--- Commit terakhir ---"
+            git log -1 --stat 2>&1
+            echo
+            echo "--- Baris error terdeteksi (grep dari build.log) ---"
+            grep -nE '^(e:|error:|FAILURE:|\* What went wrong:|>.*FAILED)' build.log || echo "(tidak ada pola error standar ditemukan, lihat build.log penuh)"
+            echo
+            echo "--- 80 baris terakhir build.log ---"
+            tail -80 build.log
+          } > diagnosis-summary.txt
 
       - name: Upload failure logs
         if: steps.build.outcome == 'failure'
@@ -58,7 +80,9 @@ jobs:
           name: log_fail_v${{ steps.ver.outputs.version_name }}_run${{ github.run_number }}
           path: |
             build.log
+            diagnosis-summary.txt
             app/build/reports
+            app/build/tmp/kotlin-classes
           if-no-files-found: warn
           retention-days: 30
 

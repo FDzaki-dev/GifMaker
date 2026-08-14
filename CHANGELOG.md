@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## v1_Batch7 — 2026-08-14
+### Fixed
+- **Hotfix regresi CI** (`compileReleaseKotlin FAILED`, ditemukan dari log run GitHub Actions asli yang diupload user): `EditorScreen.kt` salah import — `androidx.compose.ui.input.pointerInput` seharusnya `androidx.compose.ui.input.pointer.pointerInput` (kurang segmen `.pointer`). Diperkenalkan di v1_Batch6, sekarang diperbaiki.
+
+### Changed — Diagnosis kegagalan CI lebih detail
+- `.github/workflows/android.yml` (protected, edit parsial):
+  - Perintah build tambah flag `--stacktrace` agar stack trace error lebih lengkap di `build.log`.
+  - Step baru **"Generate diagnosis summary"** (jalan hanya saat build gagal): merangkum environment (`java -version`, `gradle -version`), info commit terakhir (`git log -1 --stat`), baris error hasil grep pola (`e:`, `error:`, `FAILURE:`, task `FAILED`), dan 80 baris terakhir `build.log` → ditulis ke `diagnosis-summary.txt`.
+  - Artifact **`log_fail_v<version>_run<run_number>`** (sudah ada sejak v1_Batch2) sekarang menyertakan `diagnosis-summary.txt` + `app/build/tmp/kotlin-classes` selain `build.log` & `app/build/reports` — semua path opsional (`if-no-files-found: warn`) supaya upload tidak gagal walau salah satu tidak ada.
+
+### Cara unduh & baca cepat (Termux)
+```bash
+RUN_ID=$(gh run list --workflow=android.yml --status failure --limit 1 --json databaseId -q '.[0].databaseId') && gh run download "$RUN_ID" --dir ~/storage/downloads/ --pattern "log_fail_v*_run*" && cat ~/storage/downloads/log_fail_v*_run*/diagnosis-summary.txt
+```
+
 ## v1_Batch6 — 2026-08-14
 ### Changed — Trim panel: seekbar → filmstrip 2-handle
 - `EditorScreen.kt`: `TrimPanel` tidak lagi pakai `RangeSlider` Material3 polos. Komponen baru `FilmstripTrimmer` menampilkan strip 10 thumbnail frame video asli (bukan garis polos), dengan 2 handle grip simetris (kiri=start, kanan=end, bentuk/ukuran identik) yang bisa di-drag independen (`pointerInput` + `detectDragGestures`), overlay gelap di area yang terpotong, dan border ungu di rentang terpilih. Minimum jarak antar-handle 200ms (cegah rentang invalid/nol).

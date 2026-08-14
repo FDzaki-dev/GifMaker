@@ -1,8 +1,8 @@
-FILE_MANIFEST.txt — GifMaker v1_Batch6 (2026-08-14)
+FILE_MANIFEST.txt — GifMaker v1_Batch7 (2026-08-14)
 Total: 41 file (di luar .git)
 
 .gitattributes                                                [= tetap] normalisasi EOL + binary marks
-.github/workflows/android.yml                                 [= tetap] CI: upload artifact log_fail_v<version>_run<run_number> saat gagal
+.github/workflows/android.yml                                 [~ edit] (protected) v1_Batch7: --stacktrace + diagnosis-summary.txt diperkaya ke artifact log_fail_v<version>_run<run_number>
 .gitignore                                                     [= tetap] (protected)
 CHANGELOG.md                                                   [~ edit] governance
 PROJECT_STATE.md                                                [~ edit] governance
@@ -16,7 +16,7 @@ app/src/main/java/com/gifmaker/app/GifEncoder.kt                [= tetap] penuli
 app/src/main/java/com/gifmaker/app/GifEngine.kt                 [= tetap] orkestrasi encoding
 app/src/main/java/com/gifmaker/app/GifMakerApp.kt               [~ edit] (protected) init CrashLogger
 app/src/main/java/com/gifmaker/app/GifMakerViewModel.kt         [~ edit] v1_Batch6: state+ekstraksi filmstripFrames
-app/src/main/java/com/gifmaker/app/EditorScreen.kt             [~ edit] v1_Batch6: TrimPanel pakai FilmstripTrimmer (filmstrip+2 handle simetris) ganti RangeSlider
+app/src/main/java/com/gifmaker/app/EditorScreen.kt             [~ edit] v1_Batch6: TrimPanel pakai FilmstripTrimmer (filmstrip+2 handle simetris) ganti RangeSlider · v1_Batch7: hotfix import pointerInput
 app/src/main/java/com/gifmaker/app/GifMakerNavGraph.kt          [+ baru] (protected, NavGraph) 2 route: home, editor
 app/src/main/java/com/gifmaker/app/HomeScreen.kt                [+ baru] layar 1: entry/resume
 app/src/main/java/com/gifmaker/app/MainActivity.kt              [~ edit] (protected) disederhanakan jadi theme+NavHost host (lihat CHANGELOG)
